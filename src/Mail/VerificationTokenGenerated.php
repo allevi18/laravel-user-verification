@@ -77,20 +77,16 @@ class VerificationTokenGenerated extends Mailable
             $this->from($this->from_address, $this->from_name);
         }
 
-        $this->subject(is_null($this->subject)
-            ? trans('laravel-user-verification::user-verification.verification_email_subject')
-            : $this->subject);
+        $locale = $this->user->locale??'en';
+        $view = "emails.$locale.email_verification";
+        if (!view()->exists($view))
+            $view = "emails.en.email_verification";
 
-        if (config('user-verification.email.type') == 'markdown') {
-            is_null($view = config('user-verification.email.view'))
-                ? $this->markdown('laravel-user-verification::email-markdown')
-                : $this->markdown($view);
-        } else {
-            is_null($view = config('user-verification.email.view'))
-                ? $this->view('laravel-user-verification::email')
-                : $this->view($view);
-        }
-
-        return $this;
+    return $this->markdown($view)->with([
+         'name' => $this->user->first_name . " " . $this->user->last_name,
+        'url' => route('email-verification.check', $this->user->verification_token) . '?email=' . urlencode($this->user->email)
+     ])->with('setSubject', function($subject) {   // Use to be able to set the subject from within the markdown blade
+         $this->subject($subject);
+     });
     }
 }
