@@ -183,9 +183,7 @@ class UserVerification
         $name = null
     )
     {
-        return $this->mailer
-            ->to($user)
-            ->send(new VerificationTokenGenerated($user, $subject, $from, $name));
+        send_email($user->email, new VerificationTokenGenerated($user, $subject, $from, $name));
     }
 
     /**
